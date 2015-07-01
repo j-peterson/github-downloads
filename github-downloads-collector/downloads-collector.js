@@ -11,7 +11,7 @@ var api_user_agent = 'openice';
 var options = {
     hostname: 'api.github.com',
     port: 443,
-    path: '/repos/' + user + '/' + repo + '/releases/latest',
+    path: '/repos/' + user + '/' + repo + '/releases',
     method: 'GET',
     headers: {
         'User-Agent': api_user_agent
@@ -37,20 +37,29 @@ https.request(options, callback).end();
 
 function writeToMongo (httpResponse) {
 
-    delete httpResponse.body;
+    httpResponse.forEach(function (release, index, httpResponse) {
 
-    // delete all supplimentary urls containing "_url"
-    function deleteUrls (httpResponse) {
-        for (var key in httpResponse) {
-            if (typeof httpResponse[key] === 'object') {
-                deleteUrls(httpResponse[key]);
-            } else if (/_url/.test(key)) {
-                delete httpResponse[key];
+        delete httpResponse[index].body;
+
+        // delete all supplimentary urls containing "_url"
+        function deleteUrls (httpResponse) {
+            for (var key in httpResponse) {
+                if (key.indexOf('author') > -1 ||
+                    key.indexOf('uploader') > -1 ) {
+                    delete httpResponse[key];
+                } else if (typeof httpResponse[key] === 'object') {
+                    deleteUrls(httpResponse[key]);
+                } else if (key.indexOf('url') > -1 ) {
+                    delete httpResponse[key];
+                }
             }
         }
-    }
-    deleteUrls(httpResponse);
-    // console.log(httpResponse);
+        deleteUrls(httpResponse[index]);
+    });
+
+    // console.log('httpResponse ', httpResponse);
+    // console.log('asset ', httpResponse[0].assets);
+
 
 
     MongoClient.connect(mongoUrl, function(err, db) {
@@ -58,9 +67,6 @@ function writeToMongo (httpResponse) {
         console.log('connected to database');
 
         var downloads = db.collection('downloads');
-
-        console.log('db: ', db);
-        console.log('downloads: ', downloads);
         
         downloads.find({}).toArray(function (err, docs) {
             if (err) { throw err };

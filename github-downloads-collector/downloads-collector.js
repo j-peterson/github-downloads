@@ -1,12 +1,20 @@
+'use strict';
+
 var https = require('https');
+var MongoClient = require('mongodb').MongoClient;
+
+var mongoUrl = 'mongodb://127.0.0.1:27017/github-downloads';
+var user = 'mdpnp';   // username or org name
+var repo = 'mdpnp';
+var api_user_agent = 'openice';
 
 var options = {
     hostname: 'api.github.com',
     port: 443,
-    path: '/repos/mdpnp/mdpnp/releases/latest',
+    path: '/repos/' + user + '/' + repo + '/releases/latest',
     method: 'GET',
     headers: {
-        'User-Agent': 'openice'
+        'User-Agent': api_user_agent
     }
 };
 
@@ -25,7 +33,6 @@ function callback (response) {
         writeToMongo(JSON.parse(body));
     });
 }
-
 https.request(options, callback).end();
 
 function writeToMongo (httpResponse) {
@@ -43,6 +50,28 @@ function writeToMongo (httpResponse) {
         }
     }
     deleteUrls(httpResponse);
+    // console.log(httpResponse);
 
-    console.log(httpResponse);
+
+    MongoClient.connect(mongoUrl, function(err, db) {
+        if(err) { throw err };
+        console.log('connected to database');
+
+        var downloads = db.collection('downloads');
+
+        console.log('db: ', db);
+        console.log('downloads: ', downloads);
+        
+        downloads.find({}).toArray(function (err, docs) {
+            if (err) { throw err };
+            console.log('find({}) returned:');
+            console.dir(docs);
+        });
+
+        downloads.insert(httpResponse, function(err, docs) {
+            if (err) { throw err };
+            console.log('I think it inserted httpResponse');
+            db.close();
+        });
+    });
 }

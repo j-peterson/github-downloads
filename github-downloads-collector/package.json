@@ -1,0 +1,11 @@
+{
+  "name": "github-downloads-collector",
+  "version": "0.0.1",
+  "description": "Script to access the GitHub API with the purpose collecting daily download counts of release assests and writing to a Mongo database.",
+  "main": "downloads-collector.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jeff Peterson",
+  "license": "ISC"
+}

@@ -1,12 +1,49 @@
 'use strict';
-
+var argv = require('minimist')(process.argv.slice(2));
 var https = require('https');
 var MongoClient = require('mongodb').MongoClient;
 
-var mongoUrl = 'mongodb://127.0.0.1:27017/github-downloads';
-var user = 'mdpnp';   // username or org name
-var repo = 'mdpnp';
-var api_user_agent = 'openice';
+// var user;   // username or org name
+
+// var arg_handler = {
+//     'user': ['u', 'user'],
+//     'repo': ['r', 'repo'],
+//     'user_agent': ['a', 'user_agent']
+// };
+
+// for(var key in arg_handler) {
+//     var found = false;
+//     var self = this;
+//     arg_handler[key].forEach(function(val, idx, arr) {
+//         if(argv[val]) {
+//             found = true;
+//             self[key] = argv[val];
+//         }
+//     });
+//     if(!found) {
+//         console.error("Please specify a " + key);
+//         process.exit(1);
+//     }
+// }
+// console.log(this.user);
+
+// if (argv.u || argv.user || argv.r || argv.repo || argv.a || argv.user_agent) {
+//     user = argv.u || argv.user;
+// } else {
+//     console.error('Please enter a GitHub user/org name');
+//     process.exit(1);
+// };
+var user = argv.u || argv.user;
+var repo = argv.r || argv.repo;   // github repo with releases
+var user_agent = argv.a || argv.user_agent;   // github API required header
+var verbose = argv.v || argv.verbose;
+
+if (verbose) {
+    console.log('Running with settings:\n'+
+                'user: ' + user + '\n'+
+                'repo: ' + repo + '\n'+
+                'user_agent: ' + user_agent);
+};
 
 var options = {
     hostname: 'api.github.com',
@@ -14,15 +51,17 @@ var options = {
     path: '/repos/' + user + '/' + repo + '/releases',
     method: 'GET',
     headers: {
-        'User-Agent': api_user_agent
+        'User-Agent': user_agent
     }
 };
 
 function callback (response) {
     var body = '';
 
-    console.log("statusCode: ", response.statusCode);
-    // console.log("headers: ", response.headers);
+    if (verbose) {
+        console.log("HTTP response statusCode: ", response.statusCode);
+        console.log("HTTP response headers: ", response.headers);
+    };
 
     response.on('data', function (chunk) {
         body += chunk;
@@ -33,7 +72,7 @@ function callback (response) {
         writeToMongo(JSON.parse(body));
     });
 }
-https.request(options, callback).end();
+// https.request(options, callback).end();
 
 function writeToMongo (httpResponse) {
 
@@ -41,42 +80,31 @@ function writeToMongo (httpResponse) {
 
         delete httpResponse[index].body;
 
-        // delete all supplimentary urls containing "_url"
-        function deleteUrls (httpResponse) {
+        // delete author objs, uploader objs, and supplimentary urls
+        function deleteExtraInfo (httpResponse) {
             for (var key in httpResponse) {
                 if (key.indexOf('author') > -1 ||
-                    key.indexOf('uploader') > -1 ) {
+                    key.indexOf('uploader') > -1 ||
+                    key.indexOf('url') > -1 ) {
                     delete httpResponse[key];
                 } else if (typeof httpResponse[key] === 'object') {
-                    deleteUrls(httpResponse[key]);
-                } else if (key.indexOf('url') > -1 ) {
-                    delete httpResponse[key];
+                    deleteExtraInfo(httpResponse[key]);
                 }
             }
         }
-        deleteUrls(httpResponse[index]);
+        deleteExtraInfo(httpResponse[index]);
     });
 
-    // console.log('httpResponse ', httpResponse);
+    console.log('Attempting to write the following httpResponse to Mongo:\n', httpResponse);
     // console.log('asset ', httpResponse[0].assets);
 
+    MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function(err, db) {
+        if (err) { console.log('\n*ERROR* connecting to Mongo database'); throw err };
+        if (verbose) { console.log('Connected to Mongo database') };
 
-
-    MongoClient.connect(mongoUrl, function(err, db) {
-        if(err) { throw err };
-        console.log('connected to database');
-
-        var downloads = db.collection('downloads');
-        
-        downloads.find({}).toArray(function (err, docs) {
-            if (err) { throw err };
-            console.log('find({}) returned:');
-            console.dir(docs);
-        });
-
-        downloads.insert(httpResponse, function(err, docs) {
-            if (err) { throw err };
-            console.log('I think it inserted httpResponse');
+        db.collection('downloads').insert(httpResponse, function(err, docs) {
+            if (err) { console.log('\n*ERROR* inserting into Mongo database'); throw err };
+            if (verbose) { console.log('Downloads data successfully inserted.') };
             db.close();
         });
     });

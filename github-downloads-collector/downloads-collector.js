@@ -3,55 +3,41 @@ var argv = require('minimist')(process.argv.slice(2));
 var https = require('https');
 var MongoClient = require('mongodb').MongoClient;
 
-// var user;   // username or org name
-
-// var arg_handler = {
-//     'user': ['u', 'user'],
-//     'repo': ['r', 'repo'],
-//     'user_agent': ['a', 'user_agent']
-// };
-
-// for(var key in arg_handler) {
-//     var found = false;
-//     var self = this;
-//     arg_handler[key].forEach(function(val, idx, arr) {
-//         if(argv[val]) {
-//             found = true;
-//             self[key] = argv[val];
-//         }
-//     });
-//     if(!found) {
-//         console.error("Please specify a " + key);
-//         process.exit(1);
-//     }
-// }
-// console.log(this.user);
-
-// if (argv.u || argv.user || argv.r || argv.repo || argv.a || argv.user_agent) {
-//     user = argv.u || argv.user;
-// } else {
-//     console.error('Please enter a GitHub user/org name');
-//     process.exit(1);
-// };
-var user = argv.u || argv.user;
-var repo = argv.r || argv.repo;   // github repo with releases
-var user_agent = argv.a || argv.user_agent;   // github API required header
+var cli = {};
 var verbose = argv.v || argv.verbose;
+
+var arg_handler = {
+    'user': ['u', 'user'],
+    'repo': ['r', 'repo'],
+    'user_agent': ['a', 'user_agent']
+};
+
+for (var key in arg_handler) {
+    try {
+        arg_handler[key].forEach(function (value, index, array) {
+            if (!cli[key]) cli[key] = argv[value];
+        });
+        if (!cli[key]) throw new Error('Please specify a ' + key);
+    } catch (exception) {
+        console.error(exception);
+        process.exit(1);
+    }
+}
 
 if (verbose) {
     console.log('Running with settings:\n'+
-                'user: ' + user + '\n'+
-                'repo: ' + repo + '\n'+
-                'user_agent: ' + user_agent);
-};
+                'user: ' + cli.user + '\n'+
+                'repo: ' + cli.repo + '\n'+
+                'user_agent: ' + cli.user_agent);
+}
 
 var options = {
     hostname: 'api.github.com',
     port: 443,
-    path: '/repos/' + user + '/' + repo + '/releases',
+    path: '/repos/' + cli.user + '/' + cli.repo + '/releases',
     method: 'GET',
     headers: {
-        'User-Agent': user_agent
+        'User-Agent': cli.user_agent
     }
 };
 
@@ -61,7 +47,7 @@ function callback (response) {
     if (verbose) {
         console.log("HTTP response statusCode: ", response.statusCode);
         console.log("HTTP response headers: ", response.headers);
-    };
+    }
 
     response.on('data', function (chunk) {
         body += chunk;
@@ -72,7 +58,7 @@ function callback (response) {
         writeToMongo(JSON.parse(body));
     });
 }
-// https.request(options, callback).end();
+https.request(options, callback).end();
 
 function writeToMongo (httpResponse) {
 
@@ -95,16 +81,25 @@ function writeToMongo (httpResponse) {
         deleteExtraInfo(httpResponse[index]);
     });
 
-    console.log('Attempting to write the following httpResponse to Mongo:\n', httpResponse);
-    // console.log('asset ', httpResponse[0].assets);
+    if (verbose) console.log('Attempting to write the following httpResponse to Mongo:\n', httpResponse);
 
     MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function(err, db) {
-        if (err) { console.log('\n*ERROR* connecting to Mongo database'); throw err };
-        if (verbose) { console.log('Connected to Mongo database') };
+
+        if (err) {
+            console.error('\n*ERROR* connecting to Mongo database\n');
+            process.exit(1);
+        }
+
+        if (verbose) console.log('Connected to Mongo database');
 
         db.collection('downloads').insert(httpResponse, function(err, docs) {
-            if (err) { console.log('\n*ERROR* inserting into Mongo database'); throw err };
-            if (verbose) { console.log('Downloads data successfully inserted.') };
+
+            if (err) {
+                console.error('\n*ERROR* inserting into Mongo database\n');
+                process.exit(1);
+            }
+
+            if (verbose) { console.log('Downloads data successfully inserted.') }
             db.close();
         });
     });

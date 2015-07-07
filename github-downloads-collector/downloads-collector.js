@@ -15,7 +15,11 @@ for (var key in arg_handler) {
         arg_handler[key].forEach(function (value, index, array) {
             if (!cli[key]) cli[key] = argv[value];
         });
-        if (!cli[key]) throw new Error('Please specify a ' + key);
+        if (!cli[key]) {
+            // throw new Error('Please specify a ' + key);
+            console.error('Please specify a ' + key);
+            process.exit(1);
+        }
     } catch (exception) {
         console.error(exception);
         process.exit(1);
@@ -47,10 +51,13 @@ function httpCallback (response) {
     }
 
     if (response.statusCode !== 200) {
-        throw new Error(response.statusMessage);
+        // throw new Error(response.statusCode + ': ' + response.statusMessage);
+        console.error('GitHub says: ' + response.statusCode + ': ' + response.statusMessage);
+        process.exit(1);
     }
 
     response.on('error', function (err) {
+        // throw new Error(err);
         console.error(err);
         process.exit(1);
     });

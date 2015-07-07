@@ -10,6 +10,7 @@ var arg_handler = {
 };
 cli.verbose = argv.v || argv.verbose;
 
+// read the command line argv and assign keys found in arg_handler to cli object
 for (var key in arg_handler) {
     try {
         arg_handler[key].forEach(function (value, index, array) {
@@ -69,6 +70,7 @@ function httpCallback (response) {
     });
 }
 
+// formatHttpResponse accepts the http reponse content as string
 function formatHttpResponse (rawResponse) {
     try {
         var httpResponse = JSON.parse(rawResponse);
@@ -78,12 +80,12 @@ function formatHttpResponse (rawResponse) {
         process.exit(1);
     }
 
+    // delete unneeded information like author objs, uploader objs, and supplimentary urls
     httpResponse.forEach(function (release, index, httpResponse) {
         delete httpResponse[index].body;
         delete httpResponse[index].author;
         delete httpResponse[index].published_at;
         delete httpResponse[index].target_commitish;
-        // delete author objs, uploader objs, and supplimentary urls
         (function deleteExtraInfo (httpResponse) {
             for (var key in httpResponse) {
                 if (key.indexOf('url')      > -1 ||
@@ -104,6 +106,7 @@ function formatHttpResponse (rawResponse) {
     writeToMongo(httpResponse);
 }
 
+// writeToMongo accepts an object and attempts to write it to a local mongo instance
 function writeToMongo (httpResponse) {
     if (cli.verbose) console.log('Attempting to write to Mongo');
 
@@ -121,7 +124,8 @@ function writeToMongo (httpResponse) {
                 process.exit(1);
             }
 
-            if (cli.verbose) console.log('Downloads data successfully inserted.');
+            var today = new Date();
+            console.log('Downloads data successfully inserted at ' + today.toUTCString();
             db.close();
         });
     });

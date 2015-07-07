@@ -125,7 +125,7 @@ function writeToMongo (httpResponse) {
             }
 
             var today = new Date();
-            console.log('Downloads data successfully inserted at ' + today.toUTCString();
+            console.log('Downloads data successfully inserted at ' + today.toUTCString());
             db.close();
         });
     });

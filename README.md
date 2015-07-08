@@ -18,7 +18,7 @@ ___
 For the `downloads-collector.js` midnight cron job:
 
 ```bash
-* 0 * * * node /path-to-this-repo/github-downloads/github-downloads-collector/downloads-collector.js -u github_username -r github_repo -a http_api_user_agent >> /path-to-this-repo/github-downloads/github-downloads-collector/cron.log 2>&1
+0 0 * * * node /path-to-this-repo/github-downloads/github-downloads-collector/downloads-collector.js -u github_username -r github_repo -a http_api_user_agent >> /path-to-this-repo/github-downloads/github-downloads-collector/cron.log 2>&1
 ```
 
 Be sure to have your permissions in order for crontab to successfully access the node script.

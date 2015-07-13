@@ -1,1 +1,2 @@
-/github-downloads-collector/node_modules
+**/node_modules
+/collector/cron.log

@@ -10,7 +10,7 @@ MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function(err, 
 
     db.collection('downloads').find({}).toArray(function(err, result) {
         assert.equal(null, err);
-        // assert.equal(1, result);
+        assert.equal(true, result);
 
         console.log(result);
 

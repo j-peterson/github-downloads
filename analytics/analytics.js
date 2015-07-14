@@ -9,11 +9,15 @@ MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function(err, 
 
     db.collection('downloads').find({}).toArray(function(err, result) {
         assert.equal(null, err);
-        // assert.ok(result.length);
+        assert.ok(result.length);
 
+        // console.log(JSON.stringify(result));
 
-        console.log(typeof result);
-        console.log(JSON.stringify(result));
+        fs.writeFile('test-mongo-write.txt', JSON.stringify(result), function (err) {
+            assert.equal(null, err);
+
+            console.log('wrote to a file');
+        });
 
         db.close();
     });

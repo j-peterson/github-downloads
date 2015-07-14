@@ -9,6 +9,7 @@
   "author": "Jeff Peterson",
   "license": "MIT",
   "dependencies": {
+    "minimist": "^1.1.1",
     "mongodb": "^2.0.36"
   }
 }

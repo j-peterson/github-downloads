@@ -1,6 +1,6 @@
 # GitHub 'Release-Assets' Download Count Tracker
 
-*A group of scripts for collecting daily download statistics for release assets from the GitHub API.*
+*A script for collecting daily statistics for release assets from the GitHub API.*
 
 ###Rationale
 We switched to GitHub and weren't satisfied with the temporal resolution of the 'release assets' download counters. The API and UI seem to only provide a gross total of downloads per file while we would prefer daily download numbers. To remedy this situation, there is a simple node.js script which is run daily with crontab to collect data and write the data to a text file for our website to consume.

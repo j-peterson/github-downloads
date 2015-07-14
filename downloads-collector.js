@@ -9,8 +9,8 @@ var arg_handler = {
     'user': ['u', 'user'],
     'repo': ['r', 'repo'],
     'user_agent': ['a', 'user_agent'],
-    'filepath': ['f', 'filepath']
 };
+cli.filepath = argv.f || argv.filepath;
 cli.verbose = argv.v || argv.verbose;
 
 // read the command line argv and assign keys found in arg_handler to cli object
@@ -121,18 +121,22 @@ function writeToMongo (httpResponse) {
             var today = new Date();
             console.log('Successful inserted at ' + today.toUTCString());
 
-            db.collection('downloads').find({}).toArray(function (err, result) {
-                assert.equal(null, err);
-                assert.ok(result.length);
-
-                fs.writeFile(cli.filepath + 'github-downloads-data.txt', JSON.stringify(result), function (err) {
+            if (cli.filepath) {
+                db.collection('downloads').find({}).toArray(function (err, result) {
                     assert.equal(null, err);
+                    assert.ok(result.length);
 
-                    if (cli.verbose) console.log('Successful file write');
+                    fs.writeFile(cli.filepath + 'github-downloads-data.txt', JSON.stringify(result), function (err) {
+                        assert.equal(null, err);
+
+                        if (cli.verbose) console.log('Successful file write');
+                    });
+
+                    db.close();
                 });
-
+            } else {
                 db.close();
-            });
+            }
         });
     });
 }

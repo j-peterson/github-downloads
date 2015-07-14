@@ -8,7 +8,8 @@ var cli = {};
 var arg_handler = {
     'user': ['u', 'user'],
     'repo': ['r', 'repo'],
-    'user_agent': ['a', 'user_agent']
+    'user_agent': ['a', 'user_agent'],
+    'filepath': ['f', 'filepath']
 };
 cli.verbose = argv.v || argv.verbose;
 
@@ -108,22 +109,22 @@ function formatHttpResponse (rawResponse) {
 function writeToMongo (httpResponse) {
     if (cli.verbose) console.log('Attempting to write to Mongo');
 
-    MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function(err, db) {
+    MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function (err, db) {
         assert.equal(null, err);
 
         if (cli.verbose) console.log('Connected to Mongo database');
 
-        db.collection('downloads').insert(httpResponse, function(err, docs) {
+        db.collection('downloads').insert(httpResponse, function (err, docs) {
             assert.equal(null, err);
 
             var today = new Date();
             console.log('Successful inserted at ' + today.toUTCString());
 
-            db.collection('downloads').find({}).toArray(function(err, result) {
+            db.collection('downloads').find({}).toArray(function (err, result) {
                 assert.equal(null, err);
                 assert.ok(result.length);
 
-                fs.writeFile('/home/gfish/openice/github-downloads-data.txt', JSON.stringify(result), function (err) {
+                fs.writeFile(filepath + 'github-downloads-data.txt', JSON.stringify(result), function (err) {
                     assert.equal(null, err);
 
                     if (cli.verbose) console.log('Successful file write');

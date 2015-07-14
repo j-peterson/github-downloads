@@ -3,6 +3,7 @@ var argv = require('minimist')(process.argv.slice(2));
 var MongoClient = require('mongodb').MongoClient;
 var https = require('https');
 var assert = require('assert');
+var fs = require('fs');
 var cli = {};
 var arg_handler = {
     'user': ['u', 'user'],

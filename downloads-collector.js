@@ -123,10 +123,10 @@ function writeToMongo (httpResponse) {
                 assert.equal(null, err);
                 assert.ok(result.length);
 
-                fs.writeFile('openice/github-downloads-data.txt', JSON.stringify(result), function (err) {
+                fs.writeFile('/home/gfish/openice/github-downloads-data.txt', JSON.stringify(result), function (err) {
                     assert.equal(null, err);
 
-                    if (verbose) console.log('Successful file write');
+                    if (cli.verbose) console.log('Successful file write');
                 });
 
                 db.close();

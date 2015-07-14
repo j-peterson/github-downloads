@@ -7,13 +7,13 @@ var argv = require('minimist')(process.argv.slice(2));
 MongoClient.connect('mongodb://127.0.0.1:27017/github-downloads', function(err, db) {
     assert.equal(null, err);
 
-    db.collection('downloads').find({}, function(err, result) {
+    db.collection('downloads').find({}).toArray(function(err, result) {
         assert.equal(null, err);
         // assert.ok(result.length);
 
 
         console.log(typeof result);
-        console.log(result);
+        console.log(JSON.stringify(result));
 
         db.close();
     });

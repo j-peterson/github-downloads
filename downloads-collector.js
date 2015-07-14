@@ -31,10 +31,11 @@ for (var key in arg_handler) {
 }
 
 if (cli.verbose) {
-    console.log('Running with settings:\n'+
-                'user: ' + cli.user + '\n'+
-                'repo: ' + cli.repo + '\n'+
-                'user_agent: ' + cli.user_agent);
+    console.log('Running with settings:\n' +
+                'user: ' + cli.user + '\n' +
+                'repo: ' + cli.repo + '\n' +
+                'user_agent: ' + cli.user_agent + '\n' +
+                'filepath: ' + cli.filepath);
 }
 
 var httpOptions = {
@@ -124,7 +125,7 @@ function writeToMongo (httpResponse) {
                 assert.equal(null, err);
                 assert.ok(result.length);
 
-                fs.writeFile(filepath + 'github-downloads-data.txt', JSON.stringify(result), function (err) {
+                fs.writeFile(cli.filepath + 'github-downloads-data.txt', JSON.stringify(result), function (err) {
                     assert.equal(null, err);
 
                     if (cli.verbose) console.log('Successful file write');

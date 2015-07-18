@@ -4,6 +4,7 @@ var MongoClient = require('mongodb').MongoClient;
 var https = require('https');
 var assert = require('assert');
 var fs = require('fs');
+var now = new Date();
 var cli = {};
 var arg_handler = {
     'user': ['u', 'user'],
@@ -83,6 +84,7 @@ function formatHttpResponse (rawResponse) {
 
     // delete unneeded information like author objs, uploader objs, and supplimentary urls
     httpResponse.forEach(function (release, index, httpResponse) {
+        httpResponse[index].dateRetrieved = now;
         delete httpResponse[index].body;
         delete httpResponse[index].author;
         delete httpResponse[index].published_at;
@@ -103,6 +105,7 @@ function formatHttpResponse (rawResponse) {
             }
         })(httpResponse[index])
     });
+    console.log(httpResponse);
     writeToMongo(httpResponse);
 }
 
@@ -118,8 +121,7 @@ function writeToMongo (httpResponse) {
         db.collection('downloads').insert(httpResponse, function (err, docs) {
             assert.equal(null, err);
 
-            var today = new Date();
-            console.log('Successful inserted at ' + today.toUTCString());
+            console.log('Successful inserted at ' + now.toUTCString());
 
             if (cli.filepath) {
                 db.collection('downloads').find({}).toArray(function (err, result) {

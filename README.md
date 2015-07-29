@@ -29,3 +29,7 @@ You can point the repo, log, and filepath to where ever you like. I use our webs
 * `-a api-user-agent` or `--user_agent=api-user-agent` - The GitHub API has a required header of "user_agent". Please specify a name to use in this field.
 * `-f` or `--filepath=/filepath-to-save-text/` - [Optional] The file system location to save a JSON formatted text file containing the github-downloads MongoDB collection. Intended use is to save to the file directory of a website to allow web-based visualization. `-f` alone will write to working directory. Omit flag to not write a file.
 * `-v` or `--verbose` - Very loud mode. Extra goodies will show up in your standard output and/or cron.log.
+
+<br><br>
+Once you have gathered your data, check out the `/examples` directory for a basic example visualization using D3.js.
+![screenshot](/examples/example-screenshot.png?raw=true "Screenshot")

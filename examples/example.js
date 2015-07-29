@@ -4,37 +4,6 @@ var url = 'https://www.openice.info/files/github-downloads-data.txt';
 
 function getDownloadsData (url, callback) {
     function parseDownloads (data) {
-    //     var graphData = [];
-    //     var distinctSeries = [];
-
-    //     data.map(function (obj) {
-    //         obj.assets.forEach(function (value, index, array) {
-    //             if (!(distinctSeries.indexOf(value.name) > -1)) {
-    //                 distinctSeries.push(value.name);
-    //             }
-    //         });
-    //     });
-    //     distinctSeries.sort();
-
-    //     for (var i = 0; i < distinctSeries.length; i++) {
-    //         var seriesData = {}
-    //         seriesData.name = distinctSeries[i];
-    //         seriesData.values = [];
-
-    //         data.map(function (obj) {
-    //             var date = obj.dateRetrieved;
-    //             obj.assets.forEach(function (value, index, array) {
-    //                 if (distinctSeries[i] == value.name) {
-    //                     seriesData.values.push({
-    //                         dateRetrieved: date,
-    //                         download_count: value.download_count
-    //                     });
-    //                 }
-    //             });
-    //         });
-    //         graphData.push(seriesData);
-    //     }
-    //     callback(graphData);
 
         var formattedData = data.map(function (obj) {
             var newInsert = [];
@@ -79,7 +48,7 @@ function graph (data) {
     var th = window.innerHeight * 0.75;
     var tw = window.innerWidth * 0.75;
 
-    (tw > 700) ? tw : tw = 700;
+    (window.innerWidth < 700) ? tw = 700 : tw;
 
     var margin = { top:75, right:200, bottom:75, left:75 };
 

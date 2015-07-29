@@ -71,14 +71,7 @@ function getDownloadsData (url, callback) {
 function graph (data) {
     console.log(data);
 
-    // for (var i = 0; i < data.length; i++) {
-    //     data[i].values.forEach(function (value, index, array) {
-    //         value.dateRetrieved = d3.time.format.iso.parse(value.dateRetrieved) + 'banana';
-    //         value.download_count = +value.download_count;
-    //     });
-    // }
-
-    data.forEach(function (value, index, array) {
+    data.forEach(function (value) {
         value.dateRetrieved = d3.time.format.iso.parse(value.dateRetrieved);
         value.download_count = +value.download_count;
     });
@@ -86,43 +79,42 @@ function graph (data) {
     var th = window.innerHeight * 0.75;
     var tw = window.innerWidth * 0.75;
 
-    var padding = 75;
+    (tw > 700) ? tw : tw = 700;
 
-    var h = th - padding * 2;
-    var w = tw - padding * 2;
+    var margin = { top:75, right:200, bottom:75, left:75 };
 
-    var x = d3.time.scale().range([0, w]);
-    var y = d3.scale.linear().range([h, 0]);
+    var h = th - (margin.top + margin.bottom);
+    var w = tw - (margin.left + margin.right);
 
-    var color = d3.scale.category10();
+    var xScale = d3.time.scale()
+                    .range([0, w])
+                    .domain(d3.extent(data, function(d) { return d.dateRetrieved; }));
+    var yScale = d3.scale.linear()
+                    .range([h, 0])
+                    .domain([0, d3.max(data, function(d) { return d.download_count; })]);
 
     var xAxis = d3.svg.axis()
-                      .scale(x)
-                      .orient("bottom");
+                      .scale(xScale)
+                      .orient("bottom")
+                      .tickSize(-h, 0);
 
     var yAxis = d3.svg.axis()
-                      .scale(y)
+                      .scale(yScale)
                       .orient("left");
 
     var line = d3.svg.line()
-                     // .interpolate("basis")
-                     .x(function(d) { return x(d.dateRetrieved); })
-                     .y(function(d) { return y(d.download_count); });
+                     .interpolate("linear")
+                     .x(function(d) { return xScale(d.dateRetrieved); })
+                     .y(function(d) { return yScale(d.download_count); });
+
+    var color = d3.scale.category10();
 
     var svg = d3.select("#graph-container")
                 .append("svg")
                 .attr("width", tw)
                 .attr("height", th)
               .append("g")
-                .attr("transform", "translate(" + padding + "," + padding + ")");
-
-    var assets = d3.nest().key(function(d) {
-        return d.series;
-    })
-    .entries(data);
-
-    x.domain(d3.extent(data, function(d) { return d.dateRetrieved; }));
-    y.domain([0, d3.max(data, function(d) { return d.download_count; })]);
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     svg.append("g")
        .attr("class", "x axis")
@@ -131,29 +123,35 @@ function graph (data) {
 
     svg.append("g")
        .attr("class", "y axis")
-       .call(yAxis);
+       .call(yAxis)
+     .append("text")
+       .attr("transform", "rotate(-90)")
+       .attr("y", 6)
+       .attr("dy", ".71em")
+       .style("text-anchor", "end")
+       .text("download_count");
+
+    var assets = d3.nest().key(function (d) { return d.series; }).entries(data);
+
+    console.log(assets);
 
     var asset = svg.selectAll(".asset")
-                  .data(assets)
-                .enter().append("g")
-                  .attr("class", "asset");
+                   .data(assets)
+                 .enter().append("g")
+                   .attr("class", "asset");
 
     asset.append("path")
          .attr("class", "line")
          .attr("d", function(d) { return line(d.values); })
-         .style("stroke", function(d) { return color(d.name); });
+         .style("stroke", function(d, i) { return color(i); });
 
-    // asset.append("text")
-    //      .datum(function(d) { return {name: d.name, values: d.values[d.values.length - 1]}; })
-    //      .attr("transform", function(d) { return "translate(" + x(d.values.dateRetrieved) + "," + y(d.values.download_count) + ")"; })
-    //      .attr("x", 3)
-    //      .attr("dy", ".35em")
-    //      .text(function(d) { return d.name; });
-
-    // svg.append("path")
-    //    .datum(data)
-    //    .attr("class", "line")
-    //    .attr("d", line);
+    asset.append("text")
+         .datum(function(d) { return { key: d.key, values: d.values[d.values.length - 1] }; })
+         .attr("transform", function(d) { return "translate(" + xScale(d.values.dateRetrieved) + "," + yScale(d.values.download_count) + ")"; })
+         .attr("x", 3)
+         .attr("dy", ".35em")
+         .text(function(d) { return d.key; })
+         .style("fill", function (d, i) { return color(i); });
 
 }
 

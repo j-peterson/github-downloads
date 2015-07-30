@@ -31,3 +31,7 @@ body {
   fill: none;
   stroke: #DDD;
 }
+
+.path {
+  z-index: -1;
+}
